@@ -3,7 +3,7 @@ FROM openjdk:alpine
 LABEL maintainer "Yosef Sugiarto (yosef.sugiarto@gmail.com)"
 
 
-ENV ANDROID_SDK_TOOLS_VERSION="3859397"
+ENV ANDROID_SDK_TOOLS_VERSION="4333796"
 ENV ANDROID_HOME="/usr/local/android-sdk"
 ENV ANDROID_VERSION=28
 ENV ANDROID_BUILD_TOOLS_VERSION=28.0.3

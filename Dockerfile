@@ -1,46 +1,54 @@
-FROM openjdk:alpine
+FROM anapsix/alpine-java:8_jdk
 
 LABEL maintainer "Yosef Sugiarto (yosef.sugiarto@gmail.com)"
 
+ARG VCS_REF
+LABEL org.label-schema.vcs-ref=$VCS_REF \
+      org.label-schema.vcs-url="e.g. https://github.com/microscaling/microscaling"
 
-ENV ANDROID_SDK_TOOLS_VERSION="4333796"
-ENV ANDROID_HOME="/usr/local/android-sdk"
-ENV ANDROID_VERSION=28
-ENV ANDROID_BUILD_TOOLS_VERSION=28.0.3
-ENV FASTLANE_VERSION=2.116.1
-ENV GLIBC_VERSION=2.29-r0
+ENV LANG "en_US.UTF-8"
+ENV LANGUAGE "en_US.UTF-8"
+ENV LC_ALL "en_US.UTF-8"
 
-ENV SDK_URL="https://dl.google.com/android/repository/sdk-tools-linux-${ANDROID_SDK_TOOLS_VERSION}.zip"
-ENV DOWNLOAD_FILE=/tmp/sdk.zip
+ENV ANDROID_HOME "/android-sdk"
+ENV ANDROID_COMPILE_SDK "28"
+ENV ANDROID_BUILD_TOOLS "28.0.0"
+ENV ANDROID_SDK_TOOLS "3859397"
+ENV PATH "$PATH:${ANDROID_HOME}/platform-tools"
 
-# Deps
-RUN apk add --update \
-    ca-certificates \
-    wget \
-    unzip \
-    libstdc++ \
-    g++ \
-    make \
-    ruby \
-    ruby-irb \
-    ruby-dev \
-    && rm -rf /var/cache/apk/*
+RUN apk update && \
+    apk add --no-cache \
+        git \
+        bash \
+        curl \
+        wget \
+        zip \
+        unzip \
+        ruby \
+        ruby-rdoc \
+        ruby-irb \
+        ruby-dev \
+        openssh \
+        g++ \
+        make \
+    && rm -rf /tmp/* /var/tmp/*
 
-# Fastlane
-RUN gem install fastlane -N -v $FASTLANE_VERSION
+RUN apk --no-cache add ca-certificates wget
+RUN wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
+RUN wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.26-r0/glibc-2.26-r0.apk
+RUN wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.26-r0/glibc-bin-2.26-r0.apk
+RUN wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.26-r0/glibc-i18n-2.26-r0.apk
 
-# Android SDK
-RUN mkdir -p "$ANDROID_HOME" \
-    && wget -q -O "$DOWNLOAD_FILE" $SDK_URL \
-    && unzip "$DOWNLOAD_FILE" -d "$ANDROID_HOME" \
-    && rm "$DOWNLOAD_FILE" \
-    && yes | $ANDROID_HOME/tools/bin/sdkmanager --update \
-    && yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses
+RUN apk add glibc-2.26-r0.apk
+RUN apk add glibc-bin-2.26-r0.apk
+RUN apk add glibc-i18n-2.26-r0.apk
+RUN /usr/glibc-compat/bin/localedef -i en_US -f UTF-8 en_US.UTF-8
 
+RUN gem install fastlane -v 2.66.2
 
-# Android Build Tools
-RUN $ANDROID_HOME/tools/bin/sdkmanager --update
-RUN $ANDROID_HOME/tools/bin/sdkmanager "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" \
-    "platforms;android-${ANDROID_VERSION}" \
-    "platform-tools"
+ADD https://dl.google.com/android/repository/sdk-tools-linux-${ANDROID_SDK_TOOLS}.zip sdk-tools-linux.zip
+
+RUN unzip sdk-tools-linux.zip -d ${ANDROID_HOME} && \
+    rm sdk-tools-linux.zip && \
+    echo y | ${ANDROID_HOME}/tools/bin/sdkmanager "platforms;android-${ANDROID_COMPILE_SDK}" "build-tools;${ANDROID_BUILD_TOOLS}"
 

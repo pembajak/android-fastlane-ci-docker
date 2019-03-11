@@ -16,8 +16,11 @@ ENV ANDROID_BUILD_TOOLS "28.0.0"
 ENV ANDROID_SDK_TOOLS "3859397"
 ENV PATH "$PATH:${ANDROID_HOME}/platform-tools"
 
+ENV CI=1
+
 ARG CLOUD_SDK_VERSION=237.0.0
 ENV CLOUD_SDK_VERSION=$CLOUD_SDK_VERSION
+
 
 RUN apk update && \
     apk add --no-cache \
@@ -53,7 +56,9 @@ RUN apk add glibc-bin-2.26-r0.apk
 RUN apk add glibc-i18n-2.26-r0.apk
 RUN /usr/glibc-compat/bin/localedef -i en_US -f UTF-8 en_US.UTF-8
 
+RUN gem install s3
 RUN gem install fastlane -v 2.117.1
+
 
 ## installing gcloud 
 
